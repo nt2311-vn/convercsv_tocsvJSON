@@ -121,6 +121,11 @@ func main() {
 
 	defer outputFile.Close()
 
+	bom := []byte{0xEF, 0xBB, 0xBF}
+	if _, err := outputFile.Write(bom); err != nil {
+		log.Fatalf("Error writing preserve UTF8: %v", err)
+	}
+
 	writer := csv.NewWriter(outputFile)
 	defer writer.Flush()
 
