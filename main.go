@@ -160,6 +160,7 @@ func main() {
 		)
 
 	}
+	fmt.Printf("Output file created in path result, fileName:%s", fileName)
 }
 
 func findCSVFile(dir string) (string, error) {
