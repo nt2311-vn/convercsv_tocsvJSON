@@ -144,7 +144,7 @@ func main() {
 		}
 
 		if len(group.Invoices) == 0 {
-			invoicesJSON = []byte("[]")
+			invoicesJSON = []byte("")
 		}
 
 		journalsJSON, err := json.Marshal(group.Journals)
@@ -152,7 +152,7 @@ func main() {
 			log.Fatalf("Error marshalling journals: %v", err)
 		}
 		if len(group.Journals) == 0 {
-			journalsJSON = []byte("[]")
+			journalsJSON = []byte("")
 		}
 
 		writer.Write(
