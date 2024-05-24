@@ -43,7 +43,7 @@ func main() {
 
 		if groupedData[paymentID] == nil {
 
-			paidAmt, err := strconv.ParseFloat(appliedAmt, 64)
+			paidAmt, err := strconv.ParseFloat(paymentAmt, 64)
 			if err != nil {
 				log.Fatalf("Error parsing applied amount: %v", err)
 			}
@@ -58,46 +58,69 @@ func main() {
 					PaymentAmount: paidAmt,
 				},
 			}
-
-			applyingAmt, err := strconv.ParseFloat(appliedAmt, 64)
-			if err != nil {
-				log.Fatalf("Error parsing applied amount: %v", err)
-			}
-
-			switch recordType {
-			case "invoice":
-				groupedData[paymentID].Invoices = append(groupedData[paymentID].Invoices, Invoice{
-					InternalID: internalID,
-					AppliedAmt: applyingAmt,
-				})
-				break
-
-			case "journal":
-				groupedData[paymentID].Journals = append(groupedData[paymentID].Journals, Journal{
-					InternalID: internalID,
-					AppliedAmt: applyingAmt,
-				})
-				break
-
-			default:
-				log.Fatalf("Unknown record type: %s", recordType)
-			}
-
-			var groupRecordsList []GroupRecords
-
-			for _, groupRecords := range groupedData {
-				groupRecordsList = append(groupRecordsList, *groupRecords)
-			}
-
-			jsonData, err := json.Marshal(groupRecordsList)
-			if err != nil {
-				log.Fatalf("Error marshaling JSON: %v", err)
-			}
-
-			fileName := fmt.Sprintf("%s_output.json", time.Now().Format("2006-01-02T15:04:05"))
-			outputFile, err := os.Create()
-
 		}
+
+		applyingAmt, err := strconv.ParseFloat(appliedAmt, 64)
+		if err != nil {
+			log.Fatalf("Error parsing applied amount: %v", err)
+		}
+
+		switch recordType {
+		case "invoice":
+			groupedData[paymentID].Invoices = append(groupedData[paymentID].Invoices, Invoice{
+				InternalID: internalID,
+				AppliedAmt: applyingAmt,
+			})
+
+		case "journal":
+			groupedData[paymentID].Journals = append(groupedData[paymentID].Journals, Journal{
+				InternalID: internalID,
+				AppliedAmt: applyingAmt,
+			})
+
+		default:
+			log.Fatalf("Unknown record type: %s", recordType)
+		}
+	}
+
+	if err := os.MkdirAll("./result", os.ModePerm); err != nil {
+		log.Fatalf("Error creating result directory: %v", err)
+	}
+
+	fileName := fmt.Sprintf("%s_output.csv", time.Now().Format("20060102_150405"))
+	outputFile, err := os.Create("./result/" + fileName)
+	if err != nil {
+		log.Fatalf("Error creating output file: %v", err)
+	}
+
+	defer outputFile.Close()
+
+	writer := csv.NewWriter(outputFile)
+	defer writer.Flush()
+
+	header := []string{"File Name", "Payment Info", "Invoice", "Journal"}
+	writer.Write(header)
+
+	for _, group := range groupedData {
+		paymentInfo, err := json.Marshal(group.PaymentObj)
+		if err != nil {
+			log.Fatalf("Error marshalling payment info: %v", err)
+		}
+
+		invoicesJSON, err := json.Marshal(group.Invoices)
+		if err != nil {
+			log.Fatalf("Error marshalling invoices: %v", err)
+		}
+
+		journalsJSON, err := json.Marshal(group.Journals)
+		if err != nil {
+			log.Fatalf("Error marshalling journals: %v", err)
+		}
+
+		writer.Write(
+			[]string{fileName, string(paymentInfo), string(invoicesJSON), string(journalsJSON)},
+		)
+
 	}
 }
 
