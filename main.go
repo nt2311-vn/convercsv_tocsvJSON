@@ -32,6 +32,8 @@ func main() {
 	header := records[0]
 	data := records[1:]
 
+	groupedData := make(map[string]*GroupRecords)
+
 	for _, row := range data {
 		// print out row
 		for i, cell := range row {
