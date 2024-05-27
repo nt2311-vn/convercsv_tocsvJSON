@@ -129,7 +129,14 @@ func main() {
 	writer := csv.NewWriter(outputFile)
 	defer writer.Flush()
 
-	header := []string{"File Name", "ExternalID", "Payment Info", "Invoice", "Journal"}
+	header := []string{
+		"File Name",
+		"ExternalID",
+		"Payment Info",
+		"Invoice",
+		"Journal",
+		"Total Records",
+	}
 	writer.Write(header)
 
 	for _, group := range groupedData {
@@ -155,6 +162,8 @@ func main() {
 			journalsJSON = []byte("")
 		}
 
+		totalRecords := len(group.Invoices) + len(group.Journals)
+
 		writer.Write(
 			[]string{
 				fileName,
@@ -162,6 +171,7 @@ func main() {
 				string(paymentInfo),
 				string(invoicesJSON),
 				string(journalsJSON),
+				strconv.Itoa(totalRecords),
 			},
 		)
 
